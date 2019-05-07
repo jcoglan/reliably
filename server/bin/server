@@ -1,0 +1,28 @@
+#!/usr/bin/env node
+
+const net = require("net")
+
+const HOSTNAME = "localhost"
+const INTERVAL = 1000
+const MAX_BASE = 0xff
+
+let server = net.createServer()
+
+server.on("connection", (conn) => {
+  let value = BigInt(1 + Math.floor(Math.random() * MAX_BASE))
+
+  function count() {
+    let message = { data: value.toString(10) }
+    conn.write(JSON.stringify(message))
+    conn.write("\n")
+    value *= BigInt(2)
+  }
+
+  let timer = setInterval(count, INTERVAL)
+
+  conn.on("close", () => clearInterval(timer))
+  conn.on("error", () => {})
+})
+
+let port = parseInt(process.argv[2], 10)
+server.listen(port, HOSTNAME)

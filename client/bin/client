@@ -1,0 +1,27 @@
+#!/usr/bin/env ruby
+
+require "json"
+require "optparse"
+require "socket"
+
+HOSTNAME = "localhost"
+
+options = {}
+
+parser = OptionParser.new do |args|
+  args.on("-n N", Integer) { |n| options[:count] = n }
+  args.on("-p P", Integer) { |p| options[:port]  = p }
+end
+
+parser.parse!
+
+sock = TCPSocket.new(HOSTNAME, options[:port])
+sum  = 0
+
+options[:count].times do
+  message = JSON.parse(sock.readline)
+  sum += message["data"].to_i(10)
+end
+
+sock.close
+puts sum
