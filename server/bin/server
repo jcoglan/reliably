@@ -1,26 +1,9 @@
 #!/usr/bin/env node
 
-const net = require("net")
-const stateless = require("../lib/stateless")
+const Server = require("../lib/server")
 
-const HOSTNAME = "localhost"
-const INTERVAL = 1000
-
-let server = net.createServer()
-
-server.on("connection", (conn) => {
-  let stream = stateless.random().stream()
-
-  function count() {
-    let message = { data: stream.next().value.toString(10) }
-    conn.write(JSON.stringify(message) + "\n")
-  }
-
-  let timer = setInterval(count, INTERVAL)
-
-  conn.on("close", () => clearInterval(timer))
-  conn.on("error", () => {})
-})
+let server = new Server()
 
 let port = parseInt(process.argv[2], 10)
-server.listen(port, HOSTNAME)
+let host = "localhost"
+server.listen(port, host)
