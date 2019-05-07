@@ -25,7 +25,10 @@ describe("server", () => {
 
   beforeEach((done) => {
     server = new Server({ interval: 10 })
-    server.listen(PORT, HOST, done)
+
+    server.listen(PORT, HOST, () => {
+      client = net.connect(PORT, HOST, done)
+    })
   })
 
   afterEach((done) => {
@@ -34,10 +37,9 @@ describe("server", () => {
   })
 
   describe("with a new client", () => {
-    beforeEach((done) => {
+    beforeEach(() => {
       spyOn(Stateless, "seed").and.returnValue(0x9a)
-
-      client = net.connect(PORT, HOST, done)
+      client.write("{}\n")
     })
 
     it("returns a stream starting from a random seed", async () => {
@@ -49,6 +51,24 @@ describe("server", () => {
         { data: "616" },
         { data: "1232" },
         { data: "2464" }
+      ])
+    })
+  })
+
+  describe("with a reconnecting client", () => {
+    beforeEach(() => {
+      client.write(JSON.stringify({ state: "616" }) + "\n")
+    })
+
+    it("returns a stream starting from the given state", async () => {
+      let messages = await take(5, client)
+
+      expect(messages).toEqual([
+        { data: "1232" },
+        { data: "2464" },
+        { data: "4928" },
+        { data: "9856" },
+        { data: "19712" }
       ])
     })
   })

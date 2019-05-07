@@ -18,6 +18,8 @@ parser.parse!
 sock = TCPSocket.new(HOSTNAME, options[:port])
 sum  = 0
 
+sock.puts(JSON.dump({}))
+
 options[:count].times do
   message = JSON.parse(sock.readline)
   sum += message["data"].to_i(10)

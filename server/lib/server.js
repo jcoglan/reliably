@@ -1,7 +1,8 @@
 "use strict"
 
 const net = require("net")
-const stateless = require("./stateless")
+const split = require("split")
+const Handler = require("./handler")
 
 const INTERVAL = 1000
 
@@ -22,17 +23,16 @@ class Server {
   }
 
   _handle(conn) {
-    let stream = stateless.random().stream()
+    let handler = new Handler(conn, this._interval)
 
-    function count() {
-      let message = { data: stream.next().value.toString(10) }
-      conn.write(JSON.stringify(message) + "\n")
-    }
-
-    let timer = setInterval(count, this._interval)
-
-    conn.on("close", () => clearInterval(timer))
-    conn.on("error", () => {})
+    conn.pipe(split("\n")).on("data", (data) => {
+      try {
+        let message = JSON.parse(data)
+        handler.start(message)
+      } catch (e) {
+        conn.end()
+      }
+    })
   }
 }
 
