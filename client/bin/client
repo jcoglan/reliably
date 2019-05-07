@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 
-require "json"
 require "optparse"
-require "socket"
+require_relative "../lib/client"
 
 HOSTNAME = "localhost"
 
@@ -15,15 +14,13 @@ end
 
 parser.parse!
 
-sock = TCPSocket.new(HOSTNAME, options[:port])
-sum  = 0
-
-sock.puts(JSON.dump({}))
+client = Client.new(HOSTNAME, options[:port])
+sum    = 0
 
 options[:count].times do
-  message = JSON.parse(sock.readline)
-  sum += message["data"].to_i(10)
+  data = client.read_message
+  sum += data.to_i(10)
 end
 
-sock.close
+client.close
 puts sum
