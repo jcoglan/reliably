@@ -1,26 +1,6 @@
 #!/usr/bin/env ruby
 
-require "optparse"
-require_relative "../lib/client"
+require_relative "../lib/app"
 
-HOSTNAME = "localhost"
-
-options = {}
-
-parser = OptionParser.new do |args|
-  args.on("-n N", Integer) { |n| options[:count] = n }
-  args.on("-p P", Integer) { |p| options[:port]  = p }
-end
-
-parser.parse!
-
-client = Client.new(HOSTNAME, options[:port])
-sum    = 0
-
-options[:count].times do
-  data = client.read_message
-  sum += data.to_i(10)
-end
-
-client.close
-puts sum
+app = App.new("localhost")
+puts app.run(ARGV)
