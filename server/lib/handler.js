@@ -32,16 +32,18 @@ class Handler {
     this._startEmit()
   }
 
-  _updateStateful({ uuid, params }) {
-    if (this._stream) return
-
+  _updateStateful({ uuid, params, state }) {
     this._stream = new stateful(this._sessions, stateful.random(), uuid)
-    this._stream.init(params)
+
+    if (params) this._stream.init(params)
+    if (state) this._stream.resume(state)
 
     this._startEmit()
   }
 
   _startEmit() {
+    if (this._timer) return
+
     this._timer = setInterval(() => this._emit(), this._interval)
     this._conn.on("close", () => clearInterval(this._timer))
   }

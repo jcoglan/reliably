@@ -22,37 +22,49 @@ class Stateful {
     this._sessions.register(this._uuid, state)
   }
 
-  async next() {
-    if (this._done) return { done: true }
-
-    let data = { value: this._stream.next().value }
-    let crc  = null
-
-    let message = await this._sessions.put(this._uuid, data, (state) => {
-      this._updateCRC(state, data.value)
-
-      state.count -= 1
-      if (state.count === 0) crc = state.crc
-    })
-
-    if (crc) {
-      message.data.crc = crc
-      this._done = true
-    }
-
-    return { value: message, done: false }
+  resume(state) {
+    this._sessions.resume(this._uuid, state)
   }
 
   [Symbol.asyncIterator]() {
     return this
   }
 
-  _updateCRC(state, value) {
+  async next() {
+    if (this._done) return { done: true }
+
+    let message = await this._nextMessage()
+    if (message.data.crc) this._done = true
+
+    return { value: message, done: false }
+  }
+
+  async _nextMessage() {
+    let message = await this._sessions.drain(this._uuid)
+    if (message) return message
+
+    return this._sessions.put(this._uuid, (state) => {
+      let value = this._stream.next().value
+      let data  = { value }
+      let crc   = this._updateCRC(state.crc, value)
+
+      if (state.count === 1) data.crc = crc
+
+      return [
+        data,
+        { crc, count: state.count - 1 }
+      ]
+    })
+  }
+
+  _updateCRC(crc, value) {
     let buffer = Buffer.alloc(4)
     buffer.writeUInt32BE(value)
 
-    state.crc = crc32.buf(buffer, state.crc)
-    while (state.crc < 0) state.crc += MAX_VALUE
+    crc = crc32.buf(buffer, crc)
+    while (crc < 0) crc += MAX_VALUE
+
+    return crc
   }
 }
 
