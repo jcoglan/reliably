@@ -4,8 +4,10 @@ require "app"
 
 describe App do
   before do
-    @client = FakeClient.new((1..10).map(&:to_s))
-    @app    = App.new("localhost")
+    messages = (1..10).map { |n| { "data" => n.to_s } }
+    @client  = FakeClient.new(messages)
+
+    @app = App.new("localhost")
   end
 
   it "sums the first N values from the server" do

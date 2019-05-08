@@ -5,12 +5,13 @@ class Client
   DELAY_INC = 5
   DELAY_MAX = 60
 
-  def initialize(host, port)
+  def initialize(host, port, &on_connect)
     @host  = host
     @port  = port
     @sock  = nil
     @delay = 0
-    @last  = nil
+
+    @on_connect = on_connect
   end
 
   def close
@@ -18,10 +19,7 @@ class Client
   end
 
   def read_message
-    with_socket do |sock|
-      message = JSON.parse(sock.readline)
-      @last   = message["data"]
-    end
+    with_socket { |sock| JSON.parse(sock.readline) }
   end
 
   private
@@ -49,9 +47,7 @@ class Client
   end
 
   def send_initial_message
-    message = {}
-    message["state"] = @last if @last
-
+    message = @on_connect.call
     @sock.puts(JSON.dump(message))
   end
 end

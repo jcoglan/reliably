@@ -1,5 +1,5 @@
 require "optparse"
-require_relative "./client"
+require_relative "./client/stateless"
 require_relative "./sum"
 
 class App
@@ -16,7 +16,7 @@ class App
   def run(argv)
     @parser.parse!(argv)
 
-    client = Client.new(@host, @options[:port])
+    client = Client::Stateless.new(@host, @options[:port])
     app    = Sum.new(client, @options[:count])
     result = app.run
 
