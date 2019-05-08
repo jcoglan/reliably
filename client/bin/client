@@ -3,4 +3,10 @@
 require_relative "../lib/app"
 
 app = App.new("localhost")
-puts app.run(ARGV)
+
+begin
+  puts app.run(ARGV)
+rescue => error
+  $stderr.puts error.message
+  exit 1
+end
