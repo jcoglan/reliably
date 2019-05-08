@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 
 const Server = require("../lib/server")
+const Sessions = require("../lib/sessions")
 
-let server = new Server()
+let server = new Server(new Sessions())
 
 let port = parseInt(process.argv[2], 10)
 let host = "localhost"

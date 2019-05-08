@@ -7,7 +7,8 @@ const Handler = require("./handler")
 const INTERVAL = 1000
 
 class Server {
-  constructor(options = {}) {
+  constructor(sessions, options = {}) {
+    this._sessions  = sessions
     this._interval  = options.interval || INTERVAL
     this._netServer = net.createServer()
 
@@ -23,12 +24,12 @@ class Server {
   }
 
   _handle(conn) {
-    let handler = new Handler(conn, this._interval)
+    let handler = new Handler(conn, this._sessions, this._interval)
 
     conn.pipe(split("\n")).on("data", (data) => {
       try {
         let message = JSON.parse(data)
-        handler.start(message)
+        handler.update(message)
       } catch (e) {
         conn.end()
       }
