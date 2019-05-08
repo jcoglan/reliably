@@ -23,10 +23,9 @@ class Handler {
     this._conn.on("error", () => {})
   }
 
-  _emit() {
-    let value = this._stream.next().value
-    let message = { data: value.toString(10) }
-    this._conn.write(JSON.stringify(message) + "\n")
+  async _emit() {
+    let message = await this._stream.next()
+    this._conn.write(JSON.stringify(message.value) + "\n")
   }
 }
 

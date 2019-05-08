@@ -20,9 +20,9 @@ class Stateless {
     if (resumed) this._skip()
   }
 
-  *stream() {
+  async *stream() {
     while (true) {
-      yield this._value
+      yield { data: this._value.toString(10) }
       this._skip()
     }
   }
