@@ -5,13 +5,14 @@ class Client
   DELAY_INC = 5
   DELAY_MAX = 60
 
-  def initialize(host, port, &on_connect)
+  def initialize(host, port, socket, &on_connect)
     @host  = host
     @port  = port
     @sock  = nil
     @delay = 0
 
-    @on_connect = on_connect
+    @socket_class = socket || TCPSocket
+    @on_connect   = on_connect
   end
 
   def close
@@ -39,7 +40,7 @@ class Client
   def open_socket
     return if @sock
 
-    @sock  = TCPSocket.new(@host, @port)
+    @sock  = @socket_class.new(@host, @port)
     @delay = 0
 
     send_initial_message

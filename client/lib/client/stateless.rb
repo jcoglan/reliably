@@ -3,9 +3,9 @@ require_relative "../client"
 class Client
   class Stateless
 
-    def initialize(host, port)
+    def initialize(host, port, socket)
       @last   = nil
-      @client = Client.new(host, port) { connect_message }
+      @client = Client.new(host, port, socket) { connect_message }
     end
 
     def close

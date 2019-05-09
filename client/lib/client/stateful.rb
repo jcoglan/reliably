@@ -6,12 +6,12 @@ class Client
 
     ACK_FREQUENCY = 16
 
-    def initialize(host, port, args = {})
+    def initialize(host, port, socket, args = {})
       @args = args
       @last = -1
       @uuid = SecureRandom.uuid
 
-      @client = Client.new(host, port) { connect_message }
+      @client = Client.new(host, port, socket) { connect_message }
     end
 
     def close

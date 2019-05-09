@@ -5,8 +5,9 @@ require_relative "./crc"
 require_relative "./sum"
 
 class App
-  def initialize(host)
+  def initialize(host, socket: nil)
     @host    = host
+    @socket  = socket
     @options = {}
 
     @parser = OptionParser.new do |args|
@@ -35,13 +36,13 @@ class App
   private
 
   def sum_app
-    client = Client::Stateless.new(@host, @options[:port])
+    client = Client::Stateless.new(@host, @options[:port], @socket)
     [client, Sum.new(client, @options[:count])]
   end
 
   def crc_app
     count  = @options[:count] || 1 + rand(0xffff)
-    client = Client::Stateful.new(@host, @options[:port], "count" => count)
+    client = Client::Stateful.new(@host, @options[:port], @socket, "count" => count)
     [client, CRC.new(client)]
   end
 end
