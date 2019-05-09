@@ -24,11 +24,11 @@ describe App do
   describe "crc" do
     before do
       @client = FakeClient.new([
-        { "data" => { "value" => 552680663 } },
-        { "data" => { "value" => 4175747998 } },
-        { "data" => { "value" => 541024752 } },
-        { "data" => { "value" => 1760696672 } },
-        { "data" => { "value" => 3373646083, "crc" => 4038291058 } }
+        { "id" => 1, "data" => { "value" => 552680663 } },
+        { "id" => 2, "data" => { "value" => 4175747998 } },
+        { "id" => 3, "data" => { "value" => 541024752 } },
+        { "id" => 4, "data" => { "value" => 1760696672 } },
+        { "id" => 5, "data" => { "value" => 3373646083, "crc" => 4038291058 } }
       ])
     end
 
