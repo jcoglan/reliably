@@ -20,7 +20,7 @@ describe Sum do
 
     it "returns OK" do
       sum = CRC.new(@client)
-      assert_equal "OK", sum.run
+      assert_equal [4038291058, "ok"], sum.run
     end
   end
 
@@ -31,7 +31,7 @@ describe Sum do
 
     it "returns FAIL" do
       sum = CRC.new(@client)
-      assert_equal "FAIL", sum.run
+      assert_equal [4038291058, "fail"], sum.run
     end
   end
 end

@@ -1,8 +1,8 @@
 require "zlib"
 
 class CRC
-  OK   = "OK"
-  FAIL = "FAIL"
+  OK   = "ok"
+  FAIL = "fail"
 
   def initialize(client)
     @client = client
@@ -15,7 +15,8 @@ class CRC
       @crc = Zlib.crc32([data["value"]].pack("N"), @crc)
 
       if data["crc"]
-        return (@crc == data["crc"]) ? OK : FAIL
+        status = (@crc == data["crc"]) ? OK : FAIL
+        return [@crc, status]
       end
     end
   end

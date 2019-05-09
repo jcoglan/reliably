@@ -35,7 +35,7 @@ describe App do
     it "checks the CRC of the stream" do
       Client.stub :new, @client do
         result = @app.run(%w[-m crc])
-        assert_equal "OK", result
+        assert_equal [4038291058, "ok"], result
       end
     end
   end
