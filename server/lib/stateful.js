@@ -15,6 +15,7 @@ class Stateful {
     this._sessions = sessions
     this._stream   = stream
     this._uuid     = uuid
+    this._last     = null
   }
 
   init(params) {
@@ -22,8 +23,9 @@ class Stateful {
     return this._sessions.register(this._uuid, state)
   }
 
-  resume(state) {
-    return this._sessions.resume(this._uuid, state)
+  async resume(state) {
+    await this._sessions.ack(this._uuid, state)
+    this._last = state
   }
 
   ack(state) {
@@ -42,13 +44,14 @@ class Stateful {
     if (this._done) return { done: true }
 
     let message = await this._nextMessage()
+    this._last = message.id
     if (message.data.crc) this._done = true
 
     return { value: message, done: false }
   }
 
   async _nextMessage() {
-    let message = await this._sessions.drain(this._uuid)
+    let message = await this._sessions.after(this._uuid, this._last)
     if (message) return message
 
     return this._sessions.put(this._uuid, (state) => {

@@ -8,26 +8,21 @@ class Sessions {
   }
 
   async register(uuid, state) {
-    let record = { id: 0, behind: 0, queue: [], state }
+    let record = { id: 0, queue: [], state }
     this._clients.set(uuid, record)
   }
 
-  async resume(uuid, id) {
-    await this.ack(uuid, id, true)
-  }
-
-  async ack(uuid, id, commit = false) {
+  async ack(uuid, id) {
     let record = this._get(uuid)
     if (record.timeout) clearInterval(record.timeout)
 
-    let behind = record.id - id
-    if (behind < 0) throw new Error(`Unknown message ID '${id}'`)
+    let lag = record.id - id
+    if (lag < 0) throw new Error(`Unknown message ID '${id}'`)
 
     let { queue } = record
-    if (behind > queue.length) throw new Error("Out-of-order ACK")
-    queue.splice(0, queue.length - behind)
+    if (lag > queue.length) throw new Error("Out-of-order ACK")
 
-    if (commit) record.behind = behind
+    queue.splice(0, queue.length - lag)
   }
 
   async disconnect(uuid) {
@@ -37,17 +32,6 @@ class Sessions {
     record.timeout = setTimeout(
         () => this._clients.delete(uuid),
         TIMEOUT)
-  }
-
-  async drain(uuid) {
-    let record = this._get(uuid)
-    if (record.behind === 0) return null
-
-    let { queue } = record
-    let message = queue[queue.length - record.behind]
-    record.behind -= 1
-
-    return JSON.parse(message)
   }
 
   async put(uuid, generate) {
@@ -60,6 +44,19 @@ class Sessions {
     record.queue.push(JSON.stringify(message))
 
     return message
+  }
+
+  async after(uuid, id) {
+    if (id === null) return null
+
+    let record = this._get(uuid)
+    if (id >= record.id) return null
+
+    let lag = record.id - id
+    let { queue } = record
+    let message = queue[queue.length - lag]
+
+    return JSON.parse(message)
   }
 
   _get(uuid) {
