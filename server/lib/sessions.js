@@ -16,9 +16,13 @@ class Sessions {
 
   async ack(uuid, id, commit = false) {
     let record = this._clients.get(uuid)
+    if (!record) throw new Error(`Unknown client '${uuid}'`)
+
     let behind = record.id - id
+    if (behind < 0) throw new Error(`Unknown message ID '${id}'`)
 
     let { queue } = record
+    if (behind > queue.length) throw new Error("Out-of-order ACK")
     queue.splice(0, queue.length - behind)
 
     if (commit) record.behind = behind

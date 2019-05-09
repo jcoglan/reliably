@@ -12,11 +12,15 @@ class Handler {
     conn.on("error", () => {})
   }
 
-  update(message) {
-    if (message.uuid) {
-      this._updateStateful(message)
-    } else {
-      this._updateStateless(message)
+  async update(message) {
+    try {
+      if (message.uuid) {
+        await this._updateStateful(message)
+      } else {
+        await this._updateStateless(message)
+      }
+    } catch (error) {
+      this._conn.write(JSON.stringify({ error: error.message }) + "\n")
     }
   }
 
@@ -32,13 +36,16 @@ class Handler {
     this._startEmit()
   }
 
-  _updateStateful({ uuid, params, state, ack }) {
-    if (ack) return this._stream.ack(ack)
+  async _updateStateful({ uuid, params, state, ack }) {
+    if (ack) {
+      if (!this._stream) throw new Error("Cannot send ACK as the first message")
+      return this._stream.ack(ack)
+    }
 
     this._stream = new stateful(this._sessions, stateful.random(), uuid)
 
-    if (params) this._stream.init(params)
-    if (state) this._stream.resume(state)
+    if (params) await this._stream.init(params)
+    if (state) await this._stream.resume(state)
 
     this._startEmit()
   }

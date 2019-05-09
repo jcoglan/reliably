@@ -19,15 +19,15 @@ class Stateful {
 
   init(params) {
     let state = { ...params, crc: 0 }
-    this._sessions.register(this._uuid, state)
+    return this._sessions.register(this._uuid, state)
   }
 
   resume(state) {
-    this._sessions.resume(this._uuid, state)
+    return this._sessions.resume(this._uuid, state)
   }
 
   ack(state) {
-    this._sessions.ack(this._uuid, state)
+    return this._sessions.ack(this._uuid, state)
   }
 
   [Symbol.asyncIterator]() {

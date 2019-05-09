@@ -189,5 +189,49 @@ describe("server", () => {
         ])
       })
     })
+
+    it("returns an error if an unknown client reconnects", async () => {
+      client.write(JSON.stringify({ uuid: "42", state: 1 }) + "\n")
+
+      let messages = await take(1, client)
+
+      expect(messages).toEqual([
+        { error: "Unknown client '42'" }
+      ])
+    })
+
+    it("returns an error if an ack is sent first", async () => {
+      client.write(JSON.stringify({ uuid: "42", ack: 1 }) + "\n")
+
+      let messages = await take(1, client)
+
+      expect(messages).toEqual([
+        { error: "Cannot send ACK as the first message" }
+      ])
+    })
+
+    it("returns an error if the client ACKs an unsent message", async () => {
+      client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+      client.write(JSON.stringify({ uuid: "42", ack: 1 }) + "\n")
+
+      let messages = await take(1, client)
+
+      expect(messages).toEqual([
+        { error: "Unknown message ID '1'" }
+      ])
+    })
+
+    it("returns an error if the client ACKs an old message", async () => {
+      client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+      await take(2, client)
+      client.write(JSON.stringify({ uuid: "42", ack: 2 }) + "\n")
+      client.write(JSON.stringify({ uuid: "42", ack: 1 }) + "\n")
+
+      let messages = await take(1, client)
+
+      expect(messages).toEqual([
+        { error: "Out-of-order ACK" }
+      ])
+    })
   })
 })

@@ -20,7 +20,14 @@ class Client
   end
 
   def read_message
-    with_socket { |sock| JSON.parse(sock.readline) }
+    message = with_socket { |sock| JSON.parse(sock.readline) }
+
+    if message.has_key?("error")
+      close
+      raise message["error"]
+    else
+      message
+    end
   end
 
   def send_message(message)
