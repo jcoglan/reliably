@@ -3,8 +3,10 @@
 const Server = require("../lib/server")
 const Sessions = require("../lib/sessions")
 
-let server = new Server(new Sessions())
+let interval = parseInt(process.argv[3] || "1000", 10)
+let server = new Server(new Sessions(), { interval })
 
 let port = parseInt(process.argv[2], 10)
 let host = "localhost"
+
 server.listen(port, host)
