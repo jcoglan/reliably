@@ -33,6 +33,10 @@ function take(n, stream) {
 describe("server", () => {
   let server, client
 
+  function send(message) {
+    client.write(JSON.stringify(message) + "\n")
+  }
+
   beforeEach((done) => {
     server = new Server(new Sessions(), { interval: 10 })
 
@@ -50,7 +54,7 @@ describe("server", () => {
     describe("with a new client", () => {
       beforeEach(() => {
         spyOn(Stateless, "seed").and.returnValue(0x9a)
-        client.write("{}\n")
+        send({})
       })
 
       it("returns a stream starting from a random seed", async () => {
@@ -68,7 +72,7 @@ describe("server", () => {
 
     describe("with a reconnecting client", () => {
       beforeEach(() => {
-        client.write(JSON.stringify({ state: "616" }) + "\n")
+        send({ state: "616" })
       })
 
       it("returns a stream starting from the given state", async () => {
@@ -92,7 +96,7 @@ describe("server", () => {
 
     describe("with a new client", () => {
       beforeEach(() => {
-        client.write(JSON.stringify({ uuid: "42", params: { count: 3 } }) + "\n")
+        send({ uuid: "42", params: { count: 3 } })
       })
 
       it("returns a stream ending with a checksum", async () => {
@@ -108,10 +112,10 @@ describe("server", () => {
 
     describe("with a reconnecting client", () => {
       beforeEach(async () => {
-        client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+        send({ uuid: "42", params: { count: 5 } })
         await take(3, client)
 
-        client.write(JSON.stringify({ uuid: "42", state: 1 }) + "\n")
+        send({ uuid: "42", state: 1 })
       })
 
       it("returns messages the client has not acked", async () => {
@@ -135,10 +139,10 @@ describe("server", () => {
 
     describe("when a client reconnects after the stream has ended", () => {
       beforeEach(async () => {
-        client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+        send({ uuid: "42", params: { count: 5 } })
         await take(5, client)
 
-        client.write(JSON.stringify({ uuid: "42", state: 2 }) + "\n")
+        send({ uuid: "42", state: 2 })
       })
 
       it("returns unacked messages including the CRC", async () => {
@@ -154,13 +158,13 @@ describe("server", () => {
 
     describe("when a client reconnects multiple times", () => {
       beforeEach(async () => {
-        client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+        send({ uuid: "42", params: { count: 5 } })
         await take(5, client)
 
-        client.write(JSON.stringify({ uuid: "42", state: 2 }) + "\n")
+        send({ uuid: "42", state: 2 })
         await take(3, client)
 
-        client.write(JSON.stringify({ uuid: "42", state: 3 }) + "\n")
+        send({ uuid: "42", state: 3 })
       })
 
       it("returns unacked messages including the CRC", async () => {
@@ -175,9 +179,9 @@ describe("server", () => {
 
     describe("when the client acknowledges a past message", () => {
       beforeEach(async () => {
-        client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+        send({ uuid: "42", params: { count: 5 } })
         await take(3, client)
-        client.write(JSON.stringify({ uuid: "42", ack: 2 }) + "\n")
+        send({ uuid: "42", ack: 2 })
       })
 
       it("delivers the remaining messages without replay", async () => {
@@ -191,7 +195,7 @@ describe("server", () => {
     })
 
     it("returns an error if an unknown client reconnects", async () => {
-      client.write(JSON.stringify({ uuid: "42", state: 1 }) + "\n")
+      send({ uuid: "42", state: 1 })
 
       let messages = await take(1, client)
 
@@ -201,7 +205,7 @@ describe("server", () => {
     })
 
     it("returns an error if an ack is sent first", async () => {
-      client.write(JSON.stringify({ uuid: "42", ack: 1 }) + "\n")
+      send({ uuid: "42", ack: 1 })
 
       let messages = await take(1, client)
 
@@ -211,8 +215,8 @@ describe("server", () => {
     })
 
     it("returns an error if the client ACKs an unsent message", async () => {
-      client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
-      client.write(JSON.stringify({ uuid: "42", ack: 1 }) + "\n")
+      send({ uuid: "42", params: { count: 5 } })
+      send({ uuid: "42", ack: 1 })
 
       let messages = await take(1, client)
 
@@ -222,10 +226,10 @@ describe("server", () => {
     })
 
     it("returns an error if the client ACKs an old message", async () => {
-      client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+      send({ uuid: "42", params: { count: 5 } })
       await take(2, client)
-      client.write(JSON.stringify({ uuid: "42", ack: 2 }) + "\n")
-      client.write(JSON.stringify({ uuid: "42", ack: 1 }) + "\n")
+      send({ uuid: "42", ack: 2 })
+      send({ uuid: "42", ack: 1 })
 
       let messages = await take(1, client)
 
