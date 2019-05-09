@@ -59,8 +59,9 @@ class Handler {
   }
 
   async _emit() {
-    let message = await this._stream.next()
-    this._conn.write(JSON.stringify(message.value) + "\n")
+    let { value, done } = await this._stream.next()
+    if (value) this._conn.write(JSON.stringify(value) + "\n")
+    if (done) this._conn.end()
   }
 
   _disconnect() {
