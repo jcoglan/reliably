@@ -11,11 +11,17 @@ class Sessions {
   }
 
   async resume(uuid, id) {
+    await this.ack(uuid, id, true)
+  }
+
+  async ack(uuid, id, commit = false) {
     let record = this._clients.get(uuid)
-    record.behind = record.id - id
+    let behind = record.id - id
 
     let { queue } = record
-    queue.splice(0, queue.length - record.behind)
+    queue.splice(0, queue.length - behind)
+
+    if (commit) record.behind = behind
   }
 
   async drain(uuid) {

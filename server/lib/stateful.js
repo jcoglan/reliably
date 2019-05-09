@@ -26,6 +26,10 @@ class Stateful {
     this._sessions.resume(this._uuid, state)
   }
 
+  ack(state) {
+    this._sessions.ack(this._uuid, state)
+  }
+
   [Symbol.asyncIterator]() {
     return this
   }

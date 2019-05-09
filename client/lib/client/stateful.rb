@@ -4,6 +4,8 @@ require_relative "../client"
 class Client
   class Stateful
 
+    ACK_FREQUENCY = 16
+
     def initialize(host, port, args = {})
       @args = args
       @last = -1
@@ -19,6 +21,10 @@ class Client
     def read_message
       message = @client.read_message
       @last   = [@last, message["id"]].max
+
+      if @last % ACK_FREQUENCY == 0
+        @client.send_message("uuid" => @uuid, "ack" => @last)
+      end
 
       message["data"]
     end

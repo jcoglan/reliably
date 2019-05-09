@@ -7,6 +7,9 @@ class FakeClient
     @messages.shift
   end
 
+  def send_message(message)
+  end
+
   def close
   end
 end

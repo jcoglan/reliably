@@ -22,6 +22,10 @@ class Client
     with_socket { |sock| JSON.parse(sock.readline) }
   end
 
+  def send_message(message)
+    with_socket { |sock| sock.puts(JSON.dump(message)) }
+  end
+
   private
 
   def with_socket

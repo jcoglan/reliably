@@ -172,5 +172,22 @@ describe("server", () => {
         ])
       })
     })
+
+    describe("when the client acknowledges a past message", () => {
+      beforeEach(async () => {
+        client.write(JSON.stringify({ uuid: "42", params: { count: 5 } }) + "\n")
+        await take(3, client)
+        client.write(JSON.stringify({ uuid: "42", ack: 2 }) + "\n")
+      })
+
+      it("delivers the remaining messages without replay", async () => {
+        let messages = await take(2, client)
+
+        expect(messages).toEqual([
+          { id: 4, data: { value: 3312814729 } },
+          { id: 5, data: { value: 81561450, crc: 3324646952 } }
+        ])
+      })
+    })
   })
 })

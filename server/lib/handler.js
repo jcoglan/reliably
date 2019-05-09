@@ -32,7 +32,9 @@ class Handler {
     this._startEmit()
   }
 
-  _updateStateful({ uuid, params, state }) {
+  _updateStateful({ uuid, params, state, ack }) {
+    if (ack) return this._stream.ack(ack)
+
     this._stream = new stateful(this._sessions, stateful.random(), uuid)
 
     if (params) this._stream.init(params)
