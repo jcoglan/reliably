@@ -30,6 +30,10 @@ class Stateful {
     return this._sessions.ack(this._uuid, state)
   }
 
+  disconnect() {
+    return this._sessions.disconnect(this._uuid)
+  }
+
   [Symbol.asyncIterator]() {
     return this
   }

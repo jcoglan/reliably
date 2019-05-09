@@ -9,6 +9,7 @@ class Handler {
     this._sessions = sessions
     this._interval = interval
 
+    conn.on("close", () => this._disconnect())
     conn.on("error", () => {})
   }
 
@@ -60,6 +61,12 @@ class Handler {
   async _emit() {
     let message = await this._stream.next()
     this._conn.write(JSON.stringify(message.value) + "\n")
+  }
+
+  _disconnect() {
+    if (this._stream && this._stream.disconnect) {
+      this._stream.disconnect()
+    }
   }
 }
 

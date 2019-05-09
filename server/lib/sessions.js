@@ -1,5 +1,7 @@
 "use strict"
 
+const TIMEOUT = 30000
+
 class Sessions {
   constructor() {
     this._clients = new Map()
@@ -15,8 +17,8 @@ class Sessions {
   }
 
   async ack(uuid, id, commit = false) {
-    let record = this._clients.get(uuid)
-    if (!record) throw new Error(`Unknown client '${uuid}'`)
+    let record = this._get(uuid)
+    if (record.timeout) clearInterval(record.timeout)
 
     let behind = record.id - id
     if (behind < 0) throw new Error(`Unknown message ID '${id}'`)
@@ -28,8 +30,17 @@ class Sessions {
     if (commit) record.behind = behind
   }
 
+  async disconnect(uuid) {
+    let record = this._get(uuid)
+    if (record.timeout) return
+
+    record.timeout = setTimeout(
+        () => this._clients.delete(uuid),
+        TIMEOUT)
+  }
+
   async drain(uuid) {
-    let record = this._clients.get(uuid)
+    let record = this._get(uuid)
     if (record.behind === 0) return null
 
     let { queue } = record
@@ -40,7 +51,7 @@ class Sessions {
   }
 
   async put(uuid, generate) {
-    let record = this._clients.get(uuid)
+    let record = this._get(uuid)
     let [data, state] = generate(record.state)
 
     record.state = state
@@ -49,6 +60,13 @@ class Sessions {
     record.queue.push(JSON.stringify(message))
 
     return message
+  }
+
+  _get(uuid) {
+    let record = this._clients.get(uuid)
+    if (!record) throw new Error(`Unknown client '${uuid}'`)
+
+    return record
   }
 }
 
