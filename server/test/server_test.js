@@ -9,13 +9,14 @@ const Stateless = require("../lib/stateless")
 const HOST = "localhost"
 const PORT = 4180
 
-function* fakeRandom() {
-  yield 2130920970
-  yield 4113587094
-  yield 1956217341
-  yield 3312814729
-  yield 81561450
-}
+const FAKE_RANDOM = [
+  0,
+  2130920970,
+  4113587094,
+  1956217341,
+  3312814729,
+  81561450
+]
 
 function take(n, stream) {
   return new Promise((resolve, reject) => {
@@ -91,7 +92,8 @@ describe("server", () => {
 
   describe("stateful protocol", () => {
     beforeEach(() => {
-      spyOn(Stateful, "random").and.returnValue(fakeRandom())
+      let random = FAKE_RANDOM.slice()
+      spyOn(Stateful, "random").and.callFake(() => random.shift())
     })
 
     describe("with a new client", () => {

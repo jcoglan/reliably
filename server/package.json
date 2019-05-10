@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "crc-32": "*",
+    "mersenne-twister": "*",
     "split": "*"
   },
   "devDependencies": {

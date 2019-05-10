@@ -1,19 +1,23 @@
 const Sessions = require("../lib/sessions")
 const Stateful = require("../lib/stateful")
 
-function* fakeRandom() {
-  yield 552680663
-  yield 4175747998
-  yield 541024752
-  yield 1760696672
-  yield 3373646083
-}
+const FAKE_RANDOM = [
+  0,
+  552680663,
+  4175747998,
+  541024752,
+  1760696672,
+  3373646083
+]
 
 describe("Stateful app", () => {
   let stream
 
   beforeEach(() => {
-    stream = new Stateful(new Sessions(), fakeRandom(), "42")
+    stream = new Stateful(new Sessions(), "42")
+
+    let random = FAKE_RANDOM.slice()
+    spyOn(Stateful, "random").and.callFake(() => random.shift())
   })
 
   it("generates a random sequence of the requested length", async () => {

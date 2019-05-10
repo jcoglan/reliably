@@ -43,7 +43,7 @@ class Handler {
       return this._stream.ack(ack)
     }
 
-    this._stream = new stateful(this._sessions, stateful.random(), uuid)
+    this._stream = new stateful(this._sessions, uuid)
 
     if (params) await this._stream.init(params)
     if (state) await this._stream.resume(state)

@@ -1,25 +1,27 @@
 "use strict"
 
 const crc32 = require("crc-32")
+const Twister = require("mersenne-twister")
 
 const MAX_VALUE = Math.pow(2, 32)
 
 class Stateful {
-  static *random() {
-    while (true) {
-      yield Math.floor(Math.random() * MAX_VALUE)
+  static random(seed) {
+    if (seed === undefined) {
+      return Math.floor(Math.random() * MAX_VALUE)
+    } else {
+      return new Twister(seed).random_int()
     }
   }
 
-  constructor(sessions, stream, uuid) {
+  constructor(sessions, uuid) {
     this._sessions = sessions
-    this._stream   = stream
     this._uuid     = uuid
     this._last     = null
   }
 
   init(params) {
-    let state = { ...params, crc: 0 }
+    let state = { ...params, value: Stateful.random(), crc: 0 }
     return this._sessions.register(this._uuid, state)
   }
 
@@ -55,15 +57,13 @@ class Stateful {
     if (message) return message
 
     return this._sessions.put(this._uuid, (state) => {
-      let value = this._stream.next().value
-      let data  = { value }
+      let value = Stateful.random(state.value)
       let crc   = this._updateCRC(state.crc, value)
-
-      if (state.count === 1) data.crc = crc
+      let data  = (state.count === 1) ? { value, crc } : { value }
 
       return [
         data,
-        { crc, count: state.count - 1 }
+        { count: state.count - 1, value, crc }
       ]
     })
   }
